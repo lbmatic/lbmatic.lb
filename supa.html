@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> supabase </title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .filters {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .filters input {
+            padding: 5px;
+            margin: 5px;
+        }
+
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .product {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .product img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .price {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🛒 متجر المنتجات</h1>
+
+    <div class="filters">
+        <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
+        <input type="number" id="minPrice" placeholder="السعر الأدنى">
+        <input type="number" id="maxPrice" placeholder="السعر الأقصى">
+        <button onclick="loadProducts()">تطبيق الفلتر</button>
+    </div>
+
+    <div class="products" id="productsContainer">
+        <!-- المنتجات ستظهر هنا -->
+    </div>
+
+    <script>
+        // ⚙ ضع القيم من إعدادات مشروعك (Project Settings > API)
+        const SUPABASE_URL = "https://yjtfywagrxxaeodmptkj.supabase.co"; // استبدل
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqdGZ5d2Fncnh4YWVvZG1wdGtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3MTYwNzMsImV4cCI6MjA3MTI5MjA3M30.xeYA_zBRWG7lCds6BJQK7KKubx1pMAYev0_YQGiyu7o"; // استبدل
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function loadProducts() {
+            let query = supabaseClient.from("products").select("*");
+
+            // قراءة القيم من البحث والفلترة
+            const search = document.getElementById("searchInput").value.toLowerCase();
+            const minPrice = parseFloat(document.getElementById("minPrice").value) || 0;
+            const maxPrice = parseFloat(document.getElementById("maxPrice").value) || Infinity;
+
+            // تنفيذ الاستعلام
+            const { data, error } = await query;
+
+            if (error) {
+                console.error("خطأ:", error);
+                return;
+            }
+
+            // فلترة بالبحث والسعر
+            const filtered = data.filter(item =>
+                item.name.toLowerCase().includes(search) &&
+                item.price >= minPrice &&
+                item.price <= maxPrice
+            );
+
+            displayProducts(filtered);
+        }
+
+        function displayProducts(products) {
+            const container = document.getElementById("productsContainer");
+            container.innerHTML = "";
+
+            if (products.length === 0) {
+                container.innerHTML = "<p>لا توجد منتجات مطابقة</p>";
+                return;
+            }
+
+            products.forEach(p => {
+                const div = document.createElement("div");
+                div.className = "product";
+                div.innerHTML = `
+          <img src="${p.image_url}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>${p.description}</p>
+          <p class="price">${p.price} ريال</p>
+        `;
+                container.appendChild(div);
+            });
+        }
+
+        // تحميل المنتجات عند فتح الصفحة
+        loadProducts();
+    </script>
+</body>
+
+</html>
