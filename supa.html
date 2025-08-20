@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> supabase </title>
+    <title>المتجر التجريبي</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
@@ -54,7 +54,7 @@
 </head>
 
 <body>
-    <h1>🛒 متجر المنتجات</h1>
+    <h1>🛒 متجر المنتجات التجريبي</h1>
 
     <div class="filters">
         <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
@@ -75,22 +75,20 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         async function loadProducts() {
-            let query = supabaseClient.from("products").select("*");
+            const { data, error } = await supabaseClient.from("products").select("*");
+
+            if (error) {
+                console.error("خطأ في الاتصال بقاعدة البيانات:", error);
+                document.getElementById("productsContainer").innerHTML = "<p>حدث خطأ أثناء تحميل المنتجات</p>";
+                return;
+            }
 
             // قراءة القيم من البحث والفلترة
             const search = document.getElementById("searchInput").value.toLowerCase();
             const minPrice = parseFloat(document.getElementById("minPrice").value) || 0;
             const maxPrice = parseFloat(document.getElementById("maxPrice").value) || Infinity;
 
-            // تنفيذ الاستعلام
-            const { data, error } = await query;
-
-            if (error) {
-                console.error("خطأ:", error);
-                return;
-            }
-
-            // فلترة بالبحث والسعر
+            // فلترة البيانات
             const filtered = data.filter(item =>
                 item.name.toLowerCase().includes(search) &&
                 item.price >= minPrice &&
@@ -113,17 +111,17 @@
                 const div = document.createElement("div");
                 div.className = "product";
                 div.innerHTML = `
-          <img src="${p.image_url}" alt="${p.name}">
-          <h3>${p.name}</h3>
-          <p>${p.description}</p>
-          <p class="price">${p.price} ريال</p>
+          ${p.image_url ? <img src="${p.image_url}" alt="${p.name}"> : ""}
+                        <h3>${p.name}</h3>
+                        <p>${p.description}</p>
+                        <p class="price">${p.price} ريال</p>
         `;
-                container.appendChild(div);
-            });
-        }
+        container.appendChild(div);
+      });
+    }
 
-        // تحميل المنتجات عند فتح الصفحة
-        loadProducts();
+    // تحميل المنتجات عند فتح الصفحة
+    loadProducts();
     </script>
 </body>
 
